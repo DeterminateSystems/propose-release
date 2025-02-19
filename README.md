@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  DeterminateCI:
+  prepare-release:
     uses: DeterminateSystems/prepare-release/.github/workflows/workflow.yml@main
     permissions:
       id-token: "write"
