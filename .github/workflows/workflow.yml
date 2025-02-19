@@ -46,7 +46,8 @@ jobs:
       - name: idem/${{ inputs.reference-id }} for ${{ inputs.version }}
         run: true
 
-      - run: |
+      - name: Validate the version is in the `major.minor.patch` format with no prefix or suffix
+        run: |
           if ! echo "$VERSION" | grep -q "^[[:digit:]]\+\.[[:digit:]]\+\.[[:digit:]]\+$"; then
             echo "version needs to be a version, in x.y.z format."
             exit 1
