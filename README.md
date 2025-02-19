@@ -1,4 +1,4 @@
-# prepare-release
+# propose-release
 
 Internal tooling for coordinating releases.
 Example:
@@ -19,8 +19,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  prepare-release:
-    uses: DeterminateSystems/prepare-release/.github/workflows/workflow.yml@main
+  propose-release:
+    uses: DeterminateSystems/propose-release/.github/workflows/workflow.yml@main
     permissions:
       id-token: "write"
       contents: "write"

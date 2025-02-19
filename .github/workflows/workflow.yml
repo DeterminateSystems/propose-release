@@ -28,7 +28,7 @@ on:
         required: false
 
 jobs:
-  prepare-release:
+  propose-release:
     runs-on: UbuntuLatest32Cores128G
     permissions:
       id-token: "write"
