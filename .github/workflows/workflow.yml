@@ -1,0 +1,96 @@
+on:
+  workflow_call:
+    inputs:
+      reference-id:
+        type: string
+        required: true
+      version:
+        type: string
+        required: true
+
+      update-flake:
+        type: boolean
+        default: true
+      update-crates:
+        type: boolean
+        default: true
+      set-crate-version:
+        type: boolean
+        default: true
+
+      extra-commands-early:
+        type: string
+        default: ""
+        required: false
+      extra-commands-late:
+        type: string
+        default: ""
+        required: false
+
+jobs:
+  prepare-release:
+    runs-on: UbuntuLatest32Cores128G
+    permissions:
+      id-token: "write"
+      contents: "write"
+      pull-requests: write
+    steps:
+      - name: idem/${{ inputs.reference-id }} for ${{ inputs.version }}
+        run: true
+
+      - run: |
+          if ! echo "$VERSION" | grep -q "^[[:digit:]]\+\.[[:digit:]]\+\.[[:digit:]]\+$"; then
+            echo "version needs to be a version, in x.y.z format."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          determinate: true
+      - uses: DeterminateSystems/flakehub-cache-action@main
+
+      - name: Extra pre-release changes (early)
+        if: ${{ inputs.extra-commands-early != '' }}
+        run: ${{ inputs.extra-commands-early }}
+
+      - name: Update flake.lock
+        if: ${{ inputs.update-flake }}
+        run: |
+          if [ -f flake.nix ]; then
+            nix flake update --commit-lock-file
+          fi
+
+      - name: Update Cargo dependencies
+        if: ${{ inputs.update-crates }}
+        run: |
+          if [ -f ./Cargo.toml ]; then
+            nix develop --command cargo update --aggressive
+            git add Cargo.toml Cargo.lock
+            git commit -m "Update Cargo dependencies" || true
+          fi
+
+      - name: Set the released version in Cargo.toml
+        if: ${{ inputs.set-crate-version }}
+        run: |
+          if [ -f ./Cargo.toml ]; then
+            nix run nixpkgs#toml-cli -- set ./Cargo.toml package.version "$VERSION" > Cargo.toml.next
+            mv Cargo.toml.next Cargo.toml
+
+            cargo fetch
+
+            git add Cargo.toml Cargo.lock
+            git commit -m "Set Cargo.toml package.version to $VERSION" || true
+          fi
+
+      - name: Extra pre-release changes (late)
+        if: ${{ inputs.extra-commands-late != '' }}
+        run: ${{ inputs.extra-commands-late }}
+
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: release-v${{ inputs.version }}/${{ inputs.reference-id }}
+          sign-commits: true
+          title: Release v${{ inputs.version }}
+          body: |
+            v${{ inputs.version }} (${{ inputs.reference-id }})
