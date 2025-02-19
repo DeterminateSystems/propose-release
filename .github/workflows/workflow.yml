@@ -59,6 +59,9 @@ jobs:
           determinate: true
       - uses: DeterminateSystems/flakehub-cache-action@main
 
+      - name: Prepare an empty initial commit
+        run: git commit  --allow-empty -m "Prepare release v${VERSION}"
+
       - name: Extra pre-release changes (early)
         if: ${{ inputs.extra-commands-early != '' }}
         run: ${{ inputs.extra-commands-early }}
