@@ -99,7 +99,7 @@ jobs:
         if: ${{ inputs.extra-commands-late != '' }}
         run: ${{ inputs.extra-commands-late }}
 
-      - uses: DeterminateSystems/create-pull-request@showFileAtRef
+      - uses: peter-evans/create-pull-request@v7
         with:
           branch: release-v${{ inputs.version }}/${{ inputs.reference-id }}
           sign-commits: true
