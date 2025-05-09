@@ -64,6 +64,8 @@ jobs:
 
       - name: Extra pre-release changes (early)
         if: ${{ inputs.extra-commands-early != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: ${{ inputs.extra-commands-early }}
 
       - name: Update flake.lock
@@ -97,6 +99,8 @@ jobs:
 
       - name: Extra pre-release changes (late)
         if: ${{ inputs.extra-commands-late != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: ${{ inputs.extra-commands-late }}
 
       - uses: peter-evans/create-pull-request@v7
