@@ -17,6 +17,9 @@ on:
       set-crate-version:
         type: boolean
         default: true
+      update-javascript:
+        type: boolean
+        default: true
 
       extra-commands-early:
         type: string
@@ -95,6 +98,27 @@ jobs:
 
             git add Cargo.toml Cargo.lock
             git commit -m "Set Cargo.toml package.version to $VERSION" || true
+          fi
+
+      - name: Update JavaScript dependencies
+        if: ${{ inputs.update-javascript }}
+        run: |
+          if [ -f ./pnpm-lock.yaml ]; then
+            nix develop --command pnpm update
+            git add package.json pnpm-lock.yaml
+            git commit -m "Update pnpm dependencies" || true
+
+            nix develop --command pnpm run --if-present all
+            git commit -am "Rebuild after dependency updates" || true
+          fi
+
+          if [ -f ./package-lock.json ]; then
+            nix develop --command npm update
+            git add package.json package-lock.json
+            git commit -m "Update npm dependencies" || true
+
+            nix develop --command npm run --if-present all
+            git commit -am "Rebuild after dependency updates" || true
           fi
 
       - name: Extra pre-release changes (late)
